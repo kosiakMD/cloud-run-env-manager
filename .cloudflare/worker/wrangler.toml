@@ -1,0 +1,43 @@
+name = "cloud-run-env-manager"
+# Replace with your Cloudflare account id (Dash → right sidebar → Account ID)
+account_id = "YOUR_CF_ACCOUNT_ID"
+main = "../../src/worker.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+# Static frontend — built by Vite into `cloud-run-env-manager/dist/web`.
+# Workers Assets serves it directly from that directory; API routes
+# (`/api/*`) are still handled by our Worker code.
+[assets]
+directory = "../../dist/web"
+binding = "ASSETS"
+# We want the Worker to see requests FIRST so /api/* routes reach Hono
+# before Assets tries to find a static file for them.
+run_worker_first = true
+not_found_handling = "single-page-application"
+
+# Custom domain routing (set up in CF Dashboard → Workers → Routes, or via wrangler)
+# Route: env-manager.example.com/*  →  this worker
+# Zero Trust Access Application must be configured separately in CF Dashboard:
+#   Zero Trust → Access → Applications → Self-hosted
+#   Domain: env-manager.example.com
+#   Policy: Emails ending in @your-org.com (same as the rest of your apps)
+#
+# Runtime secrets — configured via `wrangler secret put <NAME>` before first
+# deploy, or through the CF dashboard. Do NOT commit them here.
+#   - GOOGLE_CLIENT_ID
+#   - GOOGLE_CLIENT_SECRET
+#   - SESSION_SECRET
+#   - OAUTH_REDIRECT_URI  (defaults to prod below via [vars])
+
+[vars]
+AUTH_MODE = "oauth"
+OAUTH_REDIRECT_URI = "https://env-manager.example.com/api/auth/callback"
+PUBLIC_ORIGIN = "https://env-manager.example.com"
+
+[build]
+# Build the frontend before Worker bundling so Workers Assets has something
+# to serve. `cd`ing with a subshell keeps us compatible with wrangler's
+# working-directory expectations.
+command = "cd ../.. && npm install && npx vite build"

@@ -1,0 +1,13 @@
+{
+  "name": "cloud-run-env-manager-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker entry for cloud-run-env-manager — reads/writes Cloud Run env vars via the Google Cloud Run Admin API.",
+  "scripts": {
+    "dev": "wrangler dev --remote",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
