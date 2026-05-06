@@ -330,8 +330,13 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
         ) : failed ? (
           <div className="p-6 text-red-600 dark:text-red-400">Failed to load envs.</div>
         ) : data ? (
-          <>
-        <div className="grid min-w-max sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 dark:text-slate-200 font-semibold text-xs uppercase tracking-wider border-b dark:border-slate-700"
+          // Single shared `min-w-max` wrapper so every row picks up the
+          // same total width — without this each row sized to its own
+          // content and `sticky right-0` ended up at *that row's* right
+          // edge instead of the viewport edge, scattering the action
+          // icons mid-screen on short rows.
+          <div className="min-w-max">
+        <div className="grid sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 dark:text-slate-200 font-semibold text-xs uppercase tracking-wider border-b dark:border-slate-700"
              style={{ gridTemplateColumns: gridTemplate }}>
           {!isMobile && (
             <div className="px-3 py-2 sticky left-0 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 z-30">STATE</div>
@@ -366,7 +371,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           return (
             <div
               key={key}
-              className={`group grid min-w-max border-b dark:border-slate-800 ${rowBg} ${rowHover}`}
+              className={`group grid border-b dark:border-slate-800 ${rowBg} ${rowHover}`}
               style={{ gridTemplateColumns: gridTemplate }}
             >
               {!isMobile && (
@@ -438,7 +443,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
             </div>
           );
         })}
-          </>
+          </div>
         ) : null}
       </div>
 
