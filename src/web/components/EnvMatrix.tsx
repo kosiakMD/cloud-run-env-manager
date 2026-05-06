@@ -211,6 +211,14 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   const gridTemplate = isMobile
     ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 32px 36px 40px`
     : `60px 200px repeat(${visibleCols.length}, minmax(180px, 1fr)) 40px 44px 48px`;
+  // Sum of column minimums — drives the matrix container's `min-width`
+  // so columns share viewport space equally via `1fr` until the natural
+  // minimum exceeds the viewport, at which point we scroll horizontally
+  // with every column locked at its minimum (instead of one column
+  // ballooning to fit its longest value while others squish).
+  const minMatrixWidth = isMobile
+    ? mobileLabelWidth + visibleCols.length * mobileEnvMin + 32 + 36 + 40
+    : 60 + 200 + visibleCols.length * 180 + 40 + 44 + 48;
   const rightCopy = isMobile ? 'right-[76px]' : 'right-[92px]';
   const rightEdit = isMobile ? 'right-[40px]' : 'right-[48px]';
 
@@ -330,12 +338,15 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
         ) : failed ? (
           <div className="p-6 text-red-600 dark:text-red-400">Failed to load envs.</div>
         ) : data ? (
-          // Single shared `min-w-max` wrapper so every row picks up the
-          // same total width — without this each row sized to its own
-          // content and `sticky right-0` ended up at *that row's* right
-          // edge instead of the viewport edge, scattering the action
-          // icons mid-screen on short rows.
-          <div className="min-w-max">
+          // Single shared wrapper so every row picks up the same total
+          // width — without this each row sized to its own content, and
+          // `sticky right-0` ended up at *that row's* right edge instead
+          // of the viewport edge. The explicit `minWidth` makes the
+          // `1fr` columns split the viewport equally when there's room
+          // and falls back to per-column minimums (with horizontal
+          // scroll) when there isn't, so a single long value can't
+          // hijack a column's width.
+          <div style={{ minWidth: `${minMatrixWidth}px` }}>
         <div className="grid sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 dark:text-slate-200 font-semibold text-xs uppercase tracking-wider border-b dark:border-slate-700"
              style={{ gridTemplateColumns: gridTemplate }}>
           {!isMobile && (
