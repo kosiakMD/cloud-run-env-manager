@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { type ServiceId } from '../../shared/config.js';
 import { fetchEnvs, isAgnostic } from '../api.js';
 import { useFindProject } from '../use-projects.js';
@@ -9,6 +10,7 @@ import { EnvCell } from './EnvCell.js';
 import { DeleteConfirmModal } from './DeleteConfirmModal.js';
 import { AddVarModal } from './AddVarModal.js';
 import { ImportModal } from './ImportModal.js';
+import { CopyVarModal } from './CopyVarModal.js';
 
 interface Props {
   projectId: string;
@@ -51,8 +53,18 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   }, [projectId, environments, defaultAllOn]);
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [copyingKey, setCopyingKey] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
+
+  async function copyToClipboard(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`Copied ${label}`);
+    } catch (err) {
+      toast.error(`Copy failed: ${String(err)}`);
+    }
+  }
 
   function exportEnv(envName: string) {
     const envs = data?.envs?.[envName];
@@ -194,9 +206,13 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   // modal; the cell is a preview, not the source of truth.
   const mobileEnvMin = visibleCols.length <= 2 ? 130 : 90;
   const mobileLabelWidth = visibleCols.length <= 2 ? 140 : 120;
+  // Right-side action columns: copy → edit → delete. Widths picked so
+  // the icons sit comfortably and sticky offsets compose cleanly.
   const gridTemplate = isMobile
-    ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 36px 40px`
-    : `60px 200px repeat(${visibleCols.length}, minmax(180px, 1fr)) 44px 48px`;
+    ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 32px 36px 40px`
+    : `60px 200px repeat(${visibleCols.length}, minmax(180px, 1fr)) 40px 44px 48px`;
+  const rightCopy = isMobile ? 'right-[76px]' : 'right-[92px]';
+  const rightEdit = isMobile ? 'right-[40px]' : 'right-[48px]';
 
   const filterButtons: Array<{ id: FilterMode; label: string; activeClass: string; inactiveClass: string; title: string }> = [
     { id: 'all', label: 'All', activeClass: 'bg-slate-200 text-slate-800 ring-1 ring-slate-400 dark:bg-slate-200 dark:text-slate-900', inactiveClass: 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-400', title: 'Show every env key' },
@@ -336,7 +352,8 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
               </button>
             </div>
           ))}
-          <div className={`sticky ${isMobile ? 'right-[40px]' : 'right-[48px]'} bg-slate-100 dark:bg-slate-800 z-30`}></div>
+          <div className={`sticky ${rightCopy} bg-slate-100 dark:bg-slate-800 z-30`}></div>
+          <div className={`sticky ${rightEdit} bg-slate-100 dark:bg-slate-800 z-30`}></div>
           <div className="sticky right-0 bg-slate-100 dark:bg-slate-800 z-30"></div>
         </div>
         {filteredKeys.map((key) => {
@@ -358,10 +375,19 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
                 </div>
               )}
               <div
-                className={`px-3 py-2 sticky ${isMobile ? 'left-0' : 'left-[60px]'} font-mono text-sm truncate flex items-center ${solidBg} ${stickyHover} ${border} z-10`}
+                className={`px-3 py-2 sticky ${isMobile ? 'left-0' : 'left-[60px]'} font-mono text-sm truncate flex items-center gap-1 ${solidBg} ${stickyHover} ${border} z-10`}
                 title={key}
               >
-                <span className="truncate">{key}</span>
+                <span className="truncate flex-1">{key}</span>
+                {/* Quick-copy of the (potentially truncated) key. Hidden
+                    until row hover so it doesn't crowd the matrix. */}
+                <button
+                  onClick={() => copyToClipboard(key, `key ${key}`)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-xs"
+                  title="Copy key"
+                >
+                  📋
+                </button>
               </div>
               {visibleCols.map((e) => {
                 const v = data.envs[e.name]?.[key];
@@ -379,9 +405,16 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
                 );
               })}
               <button
+                onClick={() => setCopyingKey(key)}
+                className={`flex items-center justify-center text-slate-400 text-sm leading-none sticky ${rightCopy} ${solidBg} ${stickyHover} z-10 hover:text-blue-600 dark:hover:text-blue-400`}
+                title={`Copy ${key} to another project / service`}
+              >
+                📋
+              </button>
+              <button
                 onClick={() => canWrite && setEditingKey(key)}
                 disabled={!canWrite}
-                className={`flex items-center justify-center text-slate-400 text-base leading-none sticky ${isMobile ? 'right-[40px]' : 'right-[48px]'} ${solidBg} ${stickyHover} z-10 ${
+                className={`flex items-center justify-center text-slate-400 text-base leading-none sticky ${rightEdit} ${solidBg} ${stickyHover} z-10 ${
                   canWrite
                     ? 'hover:text-blue-600 dark:hover:text-blue-400'
                     : 'opacity-40 cursor-not-allowed'
@@ -445,6 +478,15 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           visibleEnvs={visibleEnvs}
           currentEnvs={data.envs}
           onClose={() => setImporting(false)}
+        />
+      )}
+      {copyingKey !== null && project && (
+        <CopyVarModal
+          sourceProject={project}
+          sourceService={service}
+          envKey={copyingKey}
+          sourceValuesByEnv={valuesByEnv(copyingKey)}
+          onClose={() => setCopyingKey(null)}
         />
       )}
     </div>
