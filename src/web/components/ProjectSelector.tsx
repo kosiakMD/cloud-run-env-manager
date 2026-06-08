@@ -63,6 +63,12 @@ export function ProjectSelector({ active, onChange }: Props) {
           <span className="leading-none">{project.emoji}</span>
         )}
         <span className="font-mono">{project.projectId}</span>
+        {/* Show region too — in agnostic mode the same GCP projectId can
+            appear once per region (synth splits by location), so without
+            the suffix the trigger is ambiguous. */}
+        {isAgnostic && (
+          <span className="font-mono text-[10px] opacity-70 leading-none">{project.region}</span>
+        )}
         <svg
           aria-hidden
           className={`w-3 h-3 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}

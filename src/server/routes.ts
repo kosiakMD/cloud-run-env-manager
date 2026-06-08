@@ -84,7 +84,12 @@ async function synthesizeAgnosticProjects(accessToken: string): Promise<ProjectC
       });
     }
   }
-  out.sort((a, b) => a.id.localeCompare(b.id));
+  // Sort by env count descending so the busiest project lands first —
+  // an alphabetical sort puts `<projectId>:us-central1` (often a stray
+  // test service or two) ahead of `<projectId>:us-west1` (the real
+  // workload), leaving the user staring at a near-empty matrix on
+  // first load.
+  out.sort((a, b) => b.environments.length - a.environments.length || a.id.localeCompare(b.id));
 
   agnosticCache.set(cacheKey, { at: Date.now(), projects: out });
   return out;

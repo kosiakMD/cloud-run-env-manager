@@ -246,13 +246,16 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
     <div className="flex items-center gap-x-3 gap-y-1 text-sm flex-wrap">
       <button
         onClick={() =>
-          setVisibleEnvs(Object.fromEntries(environments.map((e) => [e.name, true])))
+          setVisibleEnvs(
+            allEnvsOn
+              ? Object.fromEntries(environments.map((e) => [e.name, false]))
+              : Object.fromEntries(environments.map((e) => [e.name, true])),
+          )
         }
-        disabled={allEnvsOn}
-        title={allEnvsOn ? 'All environments already shown' : 'Show all environments'}
-        className="h-7 inline-flex items-center px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
+        className="h-7 inline-flex items-center px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
       >
-        All
+        {allEnvsOn ? 'None' : 'All'}
       </button>
       {environments.map((e) => (
         <label key={e.name} className="h-7 flex items-center gap-1.5 cursor-pointer">

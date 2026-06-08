@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { fetchHealth } from '../api.js';
@@ -42,7 +42,7 @@ export function AuthBanner({ projectId, onProjectChange, canWrite }: Props) {
   }
 
   if (isLoading) {
-    return <div className="p-4 bg-slate-200 dark:bg-slate-800 text-sm">Checking auth…</div>;
+    return <AuthLoadingBanner onReset={hardReset} />;
   }
   if (!data) return null;
 
@@ -62,6 +62,38 @@ export function AuthBanner({ projectId, onProjectChange, canWrite }: Props) {
     }
     // Hard reload so react-query refetches health with the cleared cookie.
     window.location.href = '/';
+  }
+
+  /**
+   * "Got stuck on auth?" escape hatch. Calls the server's logout for the
+   * happy path, then wipes every visible cookie for this domain — Cloudflare
+   * Access tokens, the OAuth session, the OAuth CSRF nonce — and finally
+   * does a cache-busting hard reload. `localStorage` is left alone on
+   * purpose: local groups live there and they're consumer config, not auth
+   * state.
+   */
+  async function hardReset() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore — best-effort
+    }
+    // Clear every readable cookie for the current host (HttpOnly stays —
+    // those are the server's problem and logout above handles the OAuth
+    // one; CF Access CF_Authorization isn't HttpOnly so this catches it).
+    for (const c of document.cookie.split(';')) {
+      const name = c.split('=')[0]?.trim();
+      if (!name) continue;
+      const host = location.hostname;
+      // Wipe at root and at parent domains (CF Access sets on the apex).
+      const parts = host.split('.');
+      for (let i = 0; i < parts.length - 1; i++) {
+        const domain = parts.slice(i).join('.');
+        document.cookie = `${name}=; Path=/; Max-Age=0; Domain=${domain}`;
+      }
+      document.cookie = `${name}=; Path=/; Max-Age=0`;
+    }
+    window.location.href = `/?reset=${Date.now()}`;
   }
 
   if (data.ok) {
@@ -102,8 +134,17 @@ export function AuthBanner({ projectId, onProjectChange, canWrite }: Props) {
   // ------------------ Not signed in — render whatever options the server supports ------------------
   return (
     <div className="p-4 bg-red-50 dark:bg-red-950 border-b border-red-300 dark:border-red-900 text-sm space-y-3">
-      <div className="font-semibold text-red-900 dark:text-red-200">
-        Sign in required
+      <div className="flex items-center gap-3">
+        <div className="font-semibold text-red-900 dark:text-red-200">
+          Sign in required
+        </div>
+        <button
+          onClick={hardReset}
+          className="ml-auto px-2 py-1 rounded bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 text-xs font-medium hover:bg-red-200 dark:hover:bg-red-800"
+          title="Reset — clear cookies (Access + OAuth) and reload. Use when sign-in keeps looping. Local groups stay."
+        >
+          ↻ Reset cookies
+        </button>
       </div>
       <div className="text-slate-700 dark:text-slate-300 leading-relaxed">
         This tool reads &amp; writes Cloud Run env vars on your behalf.
@@ -164,6 +205,39 @@ export function AuthBanner({ projectId, onProjectChange, canWrite }: Props) {
               {data.hint ?? `No active account. Re-run \`${LOGIN_CMD}\` if the sign-in browser was cancelled.`}
             </span>
           </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Initial "Checking auth…" splash. On a healthy network this is gone in
+ * <500ms. If the /api/health call hangs (CF Access redirect loop, stale
+ * cookie, etc.) we surface a manual escape hatch after 4s so the user
+ * isn't trapped staring at a spinner.
+ */
+function AuthLoadingBanner({ onReset }: { onReset: () => void }) {
+  const [showReset, setShowReset] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setShowReset(true), 4000);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <div className="p-4 bg-slate-200 dark:bg-slate-800 text-sm flex items-center gap-3 flex-wrap">
+      <span>Checking auth…</span>
+      {showReset && (
+        <>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Stuck? Clearing cookies usually fixes a hung Access / OAuth handshake.
+          </span>
+          <button
+            onClick={onReset}
+            className="ml-auto px-2 py-1 rounded bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium hover:bg-slate-400 dark:hover:bg-slate-600"
+            title="Clear cookies and reload. Local groups are kept."
+          >
+            ↻ Reset cookies + reload
+          </button>
         </>
       )}
     </div>

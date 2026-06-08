@@ -74,14 +74,46 @@ export function AddVarModal({ projectId, currentService, visibleEnvs, onClose, e
 
   function handleDefaultChange(v: string) {
     setDefaultValue(v);
+    // Mirror only into the envs that are currently enabled AND not
+    // individually edited. Mirroring into disabled envs is wasted work
+    // and surprises the user when they later toggle one on and find a
+    // value they didn't realise was already typed for them.
     const next = { ...perEnv };
-    for (const e of environments) if (!touched[e.name]) next[e.name] = v;
+    for (const e of environments) {
+      if (envsOn[e.name] && !touched[e.name]) next[e.name] = v;
+    }
     setPerEnv(next);
   }
 
   function handlePerEnvChange(name: string, v: string) {
     setPerEnv({ ...perEnv, [name]: v });
     setTouched({ ...touched, [name]: true });
+  }
+
+  function handleEnvToggle(name: string, on: boolean) {
+    setEnvsOn({ ...envsOn, [name]: on });
+    if (!on) {
+      // Re-checking the env should pick up the *current* default value,
+      // not a stale per-env override. Clear both flags so the toggle is
+      // a clean reset back to "follow default".
+      const nextPerEnv = { ...perEnv };
+      delete nextPerEnv[name];
+      const nextTouched = { ...touched };
+      delete nextTouched[name];
+      setPerEnv(nextPerEnv);
+      setTouched(nextTouched);
+    }
+  }
+
+  const allOn = environments.every((e) => envsOn[e.name]);
+  function toggleAllEnvs() {
+    if (allOn) {
+      setEnvsOn(Object.fromEntries(environments.map((e) => [e.name, false])));
+      setPerEnv({});
+      setTouched({});
+    } else {
+      setEnvsOn(Object.fromEntries(environments.map((e) => [e.name, true])));
+    }
   }
 
   const mutation = useMutation({
@@ -214,6 +246,22 @@ export function AddVarModal({ projectId, currentService, visibleEnvs, onClose, e
           </>
         )}
 
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            Apply to envs
+          </span>
+          {/* One button that toggles its label/action based on whether
+              every env is currently selected. "All" → enable all (useful
+              when you've narrowed down). "None" → clear and start fresh
+              (useful when you only want a couple). */}
+          <button
+            onClick={toggleAllEnvs}
+            disabled={pending}
+            className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+          >
+            {allOn ? 'None' : 'All'}
+          </button>
+        </div>
         <div className="space-y-2 mb-4">
           {environments.map((env) => (
             <div key={env.name} className="flex items-center gap-2">
@@ -227,7 +275,7 @@ export function AddVarModal({ projectId, currentService, visibleEnvs, onClose, e
                   type="checkbox"
                   disabled={pending}
                   checked={!!envsOn[env.name]}
-                  onChange={(e) => setEnvsOn({ ...envsOn, [env.name]: e.target.checked })}
+                  onChange={(e) => handleEnvToggle(env.name, e.target.checked)}
                 />
                 <span>{env.emoji} {env.name}</span>
               </label>
