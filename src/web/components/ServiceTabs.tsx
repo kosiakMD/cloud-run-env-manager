@@ -1,4 +1,5 @@
 import { serviceLabel, type ServiceConfig, type ServiceId } from '../../shared/config.js';
+import { PILL } from '../ui-tokens.js';
 
 interface Props {
   services: ServiceConfig[];
@@ -13,7 +14,7 @@ export function ServiceTabs({ services, active, onChange }: Props) {
         <button
           key={s.id}
           onClick={() => onChange(s.id)}
-          className={`h-7 inline-flex items-center px-2 rounded text-xs font-medium ${
+          className={`${PILL} font-medium ${
             active === s.id
               ? 'bg-slate-200 text-slate-900 ring-1 ring-slate-400 font-semibold dark:bg-slate-200 dark:text-slate-900'
               : 'bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700'

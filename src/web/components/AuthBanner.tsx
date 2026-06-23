@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { fetchHealth } from '../api.js';
 import { ProjectSelector } from './ProjectSelector.js';
+import { PILL } from '../ui-tokens.js';
 
 const LOGIN_CMD = 'gcloud auth login';
 
@@ -120,7 +121,7 @@ export function AuthBanner({ projectId, onProjectChange, canWrite }: Props) {
           {signedInViaOAuth && (
             <button
               onClick={signOut}
-              className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100 dark:hover:bg-emerald-800 text-[10px] md:text-xs font-medium"
+              className={`${PILL} bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100 dark:hover:bg-emerald-800 font-medium`}
               title="Sign out"
             >
               Sign out

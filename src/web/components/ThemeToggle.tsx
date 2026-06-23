@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PILL } from '../ui-tokens.js';
 
 type Mode = 'light' | 'dark';
 
@@ -32,7 +33,7 @@ export function ThemeToggle() {
       onClick={() => setMode((m) => (m === 'dark' ? 'light' : 'dark'))}
       // Reference height for the rest of the header — chips and + button
       // match it so the strip lines up at the same baseline.
-      className="h-7 inline-flex items-center px-2 rounded text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200"
+      className={`${PILL} font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200`}
       title={mode === 'dark' ? 'Switch to light' : 'Switch to dark'}
     >
       {mode === 'dark' ? '☀ Light' : '🌙 Dark'}

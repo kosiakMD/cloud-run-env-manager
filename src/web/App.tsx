@@ -9,6 +9,7 @@ import { fetchHealth, isAgnostic } from './api.js';
 import { useProjects, useFindProject } from './use-projects.js';
 import { useLocalGroups, removeLocalGroup, migrateBaseIds } from './local-groups.js';
 import { config, type ServiceId } from '../shared/config.js';
+import { PILL, PILL_H, PILL_TEXT, PILL_PAD } from './ui-tokens.js';
 
 export function App() {
   // Project list now comes from health (so it reflects agnostic mode's
@@ -78,20 +79,16 @@ export function App() {
         canWrite={canWrite}
       />
       {(() => {
-        // Local-group chip + "+" button shared between the inline desktop
-        // strip and the dedicated mobile row below. Same JSX renders
-        // either place — the only difference is the parent layout.
-        // Every header pill (+, chip label, chip ✕, ServiceTabs,
-        // ThemeToggle) explicitly fixes height to 28px so a missing
-        // `leading-none` on one of them can't visually inflate it
-        // above the rest — which was the bug where Light/Dark towered
-        // over the chips.
+        // Every header control reuses PILL from ui-tokens so heights
+        // stay in lockstep across breakpoints — no more "Light is taller
+        // than +" because one button had `leading-none` and the other
+        // didn't.
         const renderPlus = () => (
           <button
             onClick={() => setLocalGroupOpen(true)}
             disabled={!project}
             title="Add local group (saved in this browser only)"
-            className="h-7 inline-flex items-center justify-center px-2 rounded text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            className={`${PILL} justify-center font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200`}
             aria-label="Add local group"
           >
             +
@@ -117,7 +114,7 @@ export function App() {
                     else setProjectId(g.id);
                   }}
                   title={active ? `Click to leave ${g.label}` : `Switch to ${g.label} (${g.environments.length} svc)`}
-                  className={`h-7 inline-flex items-center px-2 text-xs rounded-l font-medium ${
+                  className={`${PILL_H} ${PILL_PAD} ${PILL_TEXT} inline-flex items-center rounded-l font-medium ${
                     active
                       ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200'
@@ -131,7 +128,7 @@ export function App() {
                     removeLocalGroup(g.id);
                   }}
                   title={`Remove ${g.label}`}
-                  className="h-7 inline-flex items-center px-1.5 text-xs rounded-r bg-slate-100 hover:bg-red-100 hover:text-red-700 text-slate-400 dark:bg-slate-800 dark:hover:bg-red-900 dark:hover:text-red-200 border-l border-slate-200 dark:border-slate-700"
+                  className={`${PILL_H} ${PILL_TEXT} inline-flex items-center px-2 lg:px-1.5 rounded-r bg-slate-100 hover:bg-red-100 hover:text-red-700 text-slate-400 dark:bg-slate-800 dark:hover:bg-red-900 dark:hover:text-red-200 border-l border-slate-200 dark:border-slate-700`}
                 >
                   ✕
                 </button>

@@ -5,6 +5,7 @@ import { type ServiceId } from '../../shared/config.js';
 import { fetchEnvs, isAgnostic } from '../api.js';
 import { useFindProject } from '../use-projects.js';
 import { useLocalGroups } from '../local-groups.js';
+import { PILL, PILL_SMALL, INPUT, PILL_H } from '../ui-tokens.js';
 import { triggerDotEnvDownload } from '../dotenv-io.js';
 import { EnvCell } from './EnvCell.js';
 import { DeleteConfirmModal } from './DeleteConfirmModal.js';
@@ -255,19 +256,26 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
     <button
       onClick={toggleAllVisible}
       title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
-      className="px-2 py-1 rounded text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+      className={`${PILL} font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600`}
     >
       {allEnvsOn ? 'None' : 'All'}
     </button>
   );
+  // Each label is `PILL_H` tall so when the row wraps the lines stay
+  // evenly spaced — previously a wrap-line with extra characters or a
+  // bigger emoji set its own height, producing the staggered overlap
+  // the user complained about.
   const checkboxList = (
-    <div className="flex items-center gap-x-3 gap-y-2 text-xs flex-wrap">
+    <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
       {allButton}
       {environments.map((e) => (
-        <label key={e.name} className="flex items-center gap-1.5 cursor-pointer">
+        <label
+          key={e.name}
+          className={`${PILL_H} inline-flex items-center gap-2 lg:gap-1.5 cursor-pointer text-sm lg:text-xs`}
+        >
           <input
             type="checkbox"
-            className="w-4 h-4"
+            className="w-5 h-5 lg:w-4 lg:h-4"
             checked={!!visibleEnvs[e.name]}
             onChange={(ev) => setVisibleEnvs({ ...visibleEnvs, [e.name]: ev.target.checked })}
           />
@@ -321,23 +329,22 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {servicesNode}
         </div>
       )}
-      {/* Filter toolbar — two rows: search+refresh, then filters+add+import. */}
-      <div className="border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 text-sm shrink-0">
+      {/* Filter toolbar — two rows: search+refresh, then filters+add+import.
+          Every control is sized via ui-tokens so the strip lines up. */}
+      <div className="border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 shrink-0">
         <div className="flex items-center gap-2 px-2 lg:px-3 pt-2">
           <input
             placeholder="Search keys…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            // Search takes the row's free width. Refresh sits at the end
-            // — matching the header pill footprint (28px tall).
-            className="flex-1 min-w-0 px-2 py-1 text-xs border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+            className={`flex-1 min-w-0 ${INPUT}`}
           />
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            // Icon-only on mobile (label is redundant next to the visible
-            // ↻ glyph and burns horizontal space). Desktop keeps text.
-            className="px-2 py-1 rounded text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50"
+            // PILL_SMALL is one step shorter than the pills — per spec,
+            // refresh is a secondary action so it reads as such.
+            className={`${PILL_SMALL} bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50`}
             title="Refetch from Cloud Run"
             aria-label="Refresh"
           >
@@ -355,7 +362,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
                   disabled={disabled}
                   onClick={() => setFilterMode(b.id)}
                   title={disabled ? 'Show at least 2 environments to use this filter' : b.title}
-                  className={`px-2 py-1 text-xs font-bold uppercase tracking-wider border-r last:border-r-0 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed ${
+                  className={`${PILL} font-bold uppercase tracking-wider border-r last:border-r-0 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-none ${
                     filterMode === b.id ? b.activeClass : b.inactiveClass
                   }`}
                 >
@@ -367,7 +374,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {canWrite && (
             <button
               onClick={() => setAdding(true)}
-              className="px-2 py-1 rounded bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300 text-xs font-semibold hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:ring-0 dark:hover:bg-emerald-600"
+              className={`${PILL} bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300 font-semibold hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:ring-0 dark:hover:bg-emerald-600`}
             >
               + Add
             </button>
@@ -375,7 +382,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {canWrite && (
             <button
               onClick={() => setImporting(true)}
-              className="px-2 py-1 rounded bg-blue-100 text-blue-700 ring-1 ring-blue-300 text-xs font-semibold hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:ring-0 dark:hover:bg-blue-700"
+              className={`${PILL} bg-blue-100 text-blue-700 ring-1 ring-blue-300 font-semibold hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:ring-0 dark:hover:bg-blue-700`}
               title="Import .env into one or more environments"
             >
               📥 Import

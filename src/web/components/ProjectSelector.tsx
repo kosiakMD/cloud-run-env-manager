@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFindProject, useProjects } from '../use-projects.js';
 import { useLocalGroups } from '../local-groups.js';
 import { config } from '../../shared/config.js';
+import { PILL } from '../ui-tokens.js';
 
 interface Props {
   active: string;
@@ -56,7 +57,7 @@ export function ProjectSelector({ active, onChange }: Props) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:hover:bg-emerald-800 dark:text-emerald-100 text-[10px] md:text-xs font-medium leading-none"
+        className={`${PILL} gap-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:hover:bg-emerald-800 dark:text-emerald-100 font-medium`}
         title={`Project: ${project.projectId} · ${project.region}`}
       >
         {!isAgnostic && project.emoji && (
