@@ -36,6 +36,22 @@ export function App() {
     }
   }, [project, service]);
 
+  // Initial `projectId` state seeds from the pre-hydration fallback
+  // (static config). After /api/health resolves — especially in agnostic
+  // mode, where synth ids look like `${gcpProjectId}:${region}` and have
+  // nothing in common with the static config's routing keys — that
+  // seeded id no longer matches anything in the project list. The
+  // selector's trigger has its own fallback so it looks fine, but
+  // `useFindProject(projectId)` returns undefined inside the matrix,
+  // leaving an empty services row + stuck "Pick at least one service
+  // above" prompt. Repoint to the first real project as soon as one
+  // shows up.
+  useEffect(() => {
+    if (projects.length === 0) return;
+    if (projects.some((p) => p.id === projectId)) return;
+    setProjectId(projects[0]!.id);
+  }, [projects, projectId]);
+
   const { data: health } = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
@@ -70,7 +86,10 @@ export function App() {
             onClick={() => setLocalGroupOpen(true)}
             disabled={!project}
             title="Add local group (saved in this browser only)"
-            className="w-7 h-7 inline-flex items-center justify-center rounded text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            // 44px on mobile for a finger-friendly tap target; 28px on
+            // desktop where pointer precision makes the chip-row
+            // compact-friendly.
+            className="w-11 h-11 md:w-7 md:h-7 inline-flex items-center justify-center rounded text-xl md:text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
             aria-label="Add local group"
           >
             +

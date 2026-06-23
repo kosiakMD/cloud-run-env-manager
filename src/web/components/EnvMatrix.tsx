@@ -206,10 +206,11 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   // modal; the cell is a preview, not the source of truth.
   const mobileEnvMin = visibleCols.length <= 2 ? 130 : 90;
   const mobileLabelWidth = visibleCols.length <= 2 ? 140 : 120;
-  // Right-side action columns: copy → edit → delete. Widths picked so
-  // the icons sit comfortably and sticky offsets compose cleanly.
+  // Right-side action columns: copy → edit → delete. On mobile each gets
+  // a 44px slot — Apple's HIG tap-target minimum. The desktop sizes can
+  // stay smaller because pointer precision beats finger precision.
   const gridTemplate = isMobile
-    ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 32px 36px 40px`
+    ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 44px 44px 44px`
     : `60px 200px repeat(${visibleCols.length}, minmax(180px, 1fr)) 40px 44px 48px`;
   // Sum of column minimums — drives the matrix container's `min-width`
   // so columns share viewport space equally via `1fr` until the natural
@@ -217,10 +218,10 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   // with every column locked at its minimum (instead of one column
   // ballooning to fit its longest value while others squish).
   const minMatrixWidth = isMobile
-    ? mobileLabelWidth + visibleCols.length * mobileEnvMin + 32 + 36 + 40
+    ? mobileLabelWidth + visibleCols.length * mobileEnvMin + 44 + 44 + 44
     : 60 + 200 + visibleCols.length * 180 + 40 + 44 + 48;
-  const rightCopy = isMobile ? 'right-[76px]' : 'right-[92px]';
-  const rightEdit = isMobile ? 'right-[40px]' : 'right-[48px]';
+  const rightCopy = isMobile ? 'right-[88px]' : 'right-[92px]';
+  const rightEdit = isMobile ? 'right-[44px]' : 'right-[48px]';
 
   const filterButtons: Array<{ id: FilterMode; label: string; activeClass: string; inactiveClass: string; title: string }> = [
     { id: 'all', label: 'All', activeClass: 'bg-slate-200 text-slate-800 ring-1 ring-slate-400 dark:bg-slate-200 dark:text-slate-900', inactiveClass: 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-400', title: 'Show every env key' },
@@ -243,7 +244,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   // grid stays aligned. `h-7` is ~28px, fits a 16px checkbox + label
   // baseline without the button looking inflated.
   const servicesNode = (
-    <div className="flex items-center gap-x-3 gap-y-1 text-sm flex-wrap">
+    <div className="flex items-center gap-x-3 gap-y-2 text-sm flex-wrap">
       <button
         onClick={() =>
           setVisibleEnvs(
@@ -253,20 +254,31 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           )
         }
         title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
-        className="h-7 inline-flex items-center px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        className="h-9 md:h-7 inline-flex items-center px-3 md:px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
       >
         {allEnvsOn ? 'None' : 'All'}
       </button>
       {environments.map((e) => (
-        <label key={e.name} className="h-7 flex items-center gap-1.5 cursor-pointer">
+        // h-9 (36px) on mobile so the whole checkbox+label area is a
+        // comfortable tap target; h-7 (28px) on desktop where the
+        // pointer's precision lets the chips stay tight.
+        <label key={e.name} className="h-9 md:h-7 flex items-center gap-2 md:gap-1.5 cursor-pointer">
           <input
             type="checkbox"
-            className="w-4 h-4"
+            className="w-5 h-5 md:w-4 md:h-4"
             checked={!!visibleEnvs[e.name]}
             onChange={(ev) => setVisibleEnvs({ ...visibleEnvs, [e.name]: ev.target.checked })}
           />
-          <span className="hidden md:inline whitespace-nowrap">{e.emoji} {e.name}</span>
-          <span className="md:hidden">{e.emoji}</span>
+          {/* Desktop always shows emoji + full name. Mobile prefers the
+              emoji (compact) but agnostic synth envs have no emoji, so
+              fall back to a truncated name there — otherwise users see
+              checkbox rows with nothing next to them. */}
+          <span className="hidden md:inline whitespace-nowrap">{e.emoji ? `${e.emoji} ` : ''}{e.name}</span>
+          {e.emoji ? (
+            <span className="md:hidden text-base">{e.emoji}</span>
+          ) : (
+            <span className="md:hidden text-xs font-mono max-w-[88px] truncate" title={e.name}>{e.name}</span>
+          )}
         </label>
       ))}
     </div>
@@ -280,7 +292,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {servicesNode}
         </div>
       )}
-      <div className="flex items-center gap-2 p-2 md:p-3 border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 text-sm shrink-0">
+      <div className="flex items-center flex-wrap gap-2 p-2 md:p-3 border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 text-sm shrink-0">
         <input
           placeholder="Search keys…"
           value={search}
@@ -425,7 +437,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
               })}
               <button
                 onClick={() => setCopyingKey(key)}
-                className={`flex items-center justify-center text-slate-400 text-sm leading-none sticky ${rightCopy} ${solidBg} ${stickyHover} z-10 hover:text-blue-600 dark:hover:text-blue-400`}
+                className={`flex items-center justify-center text-slate-400 text-lg md:text-sm leading-none sticky ${rightCopy} ${solidBg} ${stickyHover} z-10 hover:text-blue-600 dark:hover:text-blue-400`}
                 title={`Copy ${key} to another project / service`}
               >
                 📋
@@ -433,7 +445,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
               <button
                 onClick={() => canWrite && setEditingKey(key)}
                 disabled={!canWrite}
-                className={`flex items-center justify-center text-slate-400 text-base leading-none sticky ${rightEdit} ${solidBg} ${stickyHover} z-10 ${
+                className={`flex items-center justify-center text-slate-400 text-lg md:text-base leading-none sticky ${rightEdit} ${solidBg} ${stickyHover} z-10 ${
                   canWrite
                     ? 'hover:text-blue-600 dark:hover:text-blue-400'
                     : 'opacity-40 cursor-not-allowed'
@@ -445,7 +457,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
               <button
                 onClick={() => canWrite && setDeletingKey(key)}
                 disabled={!canWrite}
-                className={`flex items-center justify-center text-slate-400 text-base leading-none sticky right-0 ${solidBg} ${stickyHover} z-10 ${
+                className={`flex items-center justify-center text-slate-400 text-lg md:text-base leading-none sticky right-0 ${solidBg} ${stickyHover} z-10 ${
                   canWrite
                     ? 'hover:text-red-600 dark:hover:text-red-400'
                     : 'opacity-40 cursor-not-allowed'
