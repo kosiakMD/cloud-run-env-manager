@@ -204,24 +204,22 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   // horizontal scroll, and 4-env projects only needs a short scroll.
   // The user can always tap a row to see the full cell contents in the edit
   // modal; the cell is a preview, not the source of truth.
-  const mobileEnvMin = visibleCols.length <= 2 ? 130 : 90;
-  const mobileLabelWidth = visibleCols.length <= 2 ? 140 : 120;
-  // Right-side action columns: copy → edit → delete. On mobile each gets
-  // a 44px slot — Apple's HIG tap-target minimum. The desktop sizes can
-  // stay smaller because pointer precision beats finger precision.
+  // Mobile collapses copy/edit/delete into one ⋯ menu so the matrix
+  // gives back ~90px of horizontal room to actual data. ENV column is
+  // also wider (160px) to fit real key names like APP_DOMAIN without
+  // chopping every other character — Vercel WIG flags aggressively
+  // truncated identifiers as broken UI.
+  const mobileEnvMin = visibleCols.length <= 2 ? 130 : 100;
+  const mobileLabelWidth = 160;
   const gridTemplate = isMobile
-    ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 44px 44px 44px`
+    ? `${mobileLabelWidth}px repeat(${visibleCols.length}, minmax(${mobileEnvMin}px, 1fr)) 44px`
     : `60px 200px repeat(${visibleCols.length}, minmax(180px, 1fr)) 40px 44px 48px`;
-  // Sum of column minimums — drives the matrix container's `min-width`
-  // so columns share viewport space equally via `1fr` until the natural
-  // minimum exceeds the viewport, at which point we scroll horizontally
-  // with every column locked at its minimum (instead of one column
-  // ballooning to fit its longest value while others squish).
   const minMatrixWidth = isMobile
-    ? mobileLabelWidth + visibleCols.length * mobileEnvMin + 44 + 44 + 44
+    ? mobileLabelWidth + visibleCols.length * mobileEnvMin + 44
     : 60 + 200 + visibleCols.length * 180 + 40 + 44 + 48;
-  const rightCopy = isMobile ? 'right-[88px]' : 'right-[92px]';
-  const rightEdit = isMobile ? 'right-[44px]' : 'right-[48px]';
+  const rightCopy = 'right-[92px]';
+  const rightEdit = 'right-[48px]';
+  const [actionMenuKey, setActionMenuKey] = useState<string | null>(null);
 
   const filterButtons: Array<{ id: FilterMode; label: string; activeClass: string; inactiveClass: string; title: string }> = [
     { id: 'all', label: 'All', activeClass: 'bg-slate-200 text-slate-800 ring-1 ring-slate-400 dark:bg-slate-200 dark:text-slate-900', inactiveClass: 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-400', title: 'Show every env key' },
@@ -299,7 +297,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           onChange={(e) => setSearch(e.target.value)}
           className="w-40 md:w-48 px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
         />
-        <div className="flex rounded border dark:border-slate-700 overflow-hidden">
+        <div className="flex shrink-0 rounded border dark:border-slate-700 overflow-hidden">
           {filterButtons.map((b) => {
             const disabled = singleCol && b.id !== 'all';
             return (
@@ -383,8 +381,12 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
               </button>
             </div>
           ))}
-          <div className={`sticky ${rightCopy} bg-slate-100 dark:bg-slate-800 z-30`}></div>
-          <div className={`sticky ${rightEdit} bg-slate-100 dark:bg-slate-800 z-30`}></div>
+          {!isMobile && (
+            <>
+              <div className={`sticky ${rightCopy} bg-slate-100 dark:bg-slate-800 z-30`}></div>
+              <div className={`sticky ${rightEdit} bg-slate-100 dark:bg-slate-800 z-30`}></div>
+            </>
+          )}
           <div className="sticky right-0 bg-slate-100 dark:bg-slate-800 z-30"></div>
         </div>
         {filteredKeys.map((key) => {
@@ -406,16 +408,22 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
                 </div>
               )}
               <div
-                className={`px-3 py-2 sticky ${isMobile ? 'left-0' : 'left-[60px]'} font-mono text-sm truncate flex items-center gap-1 ${solidBg} ${stickyHover} ${border} z-10`}
+                className={`px-3 py-2 sticky ${isMobile ? 'left-0' : 'left-[60px]'} font-mono text-sm flex items-center gap-1 min-w-0 ${solidBg} ${stickyHover} ${border} z-10`}
                 title={key}
               >
-                <span className="truncate flex-1">{key}</span>
-                {/* Quick-copy of the (potentially truncated) key. Hidden
-                    until row hover so it doesn't crowd the matrix. */}
+                {/* On desktop one line truncates with hover-to-reveal copy.
+                    On mobile the column is wider (160px) AND the key is
+                    allowed to wrap onto two lines so long identifiers
+                    like `EMAIL_SENDER_ADDRESS` stay readable instead of
+                    becoming `EMAIL_SE…`. `min-w-0` on the flex parent is
+                    required for either the truncate or break-all to fire
+                    inside a grid cell. */}
+                <span className={`flex-1 min-w-0 ${isMobile ? 'break-all leading-tight' : 'truncate'}`}>{key}</span>
                 <button
                   onClick={() => copyToClipboard(key, `key ${key}`)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-xs"
+                  className="md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-base md:text-xs"
                   title="Copy key"
+                  aria-label="Copy key"
                 >
                   📋
                 </button>
@@ -435,37 +443,52 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
                   />
                 );
               })}
-              <button
-                onClick={() => setCopyingKey(key)}
-                className={`flex items-center justify-center text-slate-400 text-lg md:text-sm leading-none sticky ${rightCopy} ${solidBg} ${stickyHover} z-10 hover:text-blue-600 dark:hover:text-blue-400`}
-                title={`Copy ${key} to another project / service`}
-              >
-                📋
-              </button>
-              <button
-                onClick={() => canWrite && setEditingKey(key)}
-                disabled={!canWrite}
-                className={`flex items-center justify-center text-slate-400 text-lg md:text-base leading-none sticky ${rightEdit} ${solidBg} ${stickyHover} z-10 ${
-                  canWrite
-                    ? 'hover:text-blue-600 dark:hover:text-blue-400'
-                    : 'opacity-40 cursor-not-allowed'
-                }`}
-                title={canWrite ? `Mass-edit ${key}` : 'Read-only access to this project'}
-              >
-                ✏️
-              </button>
-              <button
-                onClick={() => canWrite && setDeletingKey(key)}
-                disabled={!canWrite}
-                className={`flex items-center justify-center text-slate-400 text-lg md:text-base leading-none sticky right-0 ${solidBg} ${stickyHover} z-10 ${
-                  canWrite
-                    ? 'hover:text-red-600 dark:hover:text-red-400'
-                    : 'opacity-40 cursor-not-allowed'
-                }`}
-                title={canWrite ? `Delete ${key}` : 'Read-only access to this project'}
-              >
-                🗑
-              </button>
+              {!isMobile && (
+                <>
+                  <button
+                    onClick={() => setCopyingKey(key)}
+                    className={`flex items-center justify-center text-slate-400 text-sm leading-none sticky ${rightCopy} ${solidBg} ${stickyHover} z-10 hover:text-blue-600 dark:hover:text-blue-400`}
+                    title={`Copy ${key} to another project / service`}
+                  >
+                    📋
+                  </button>
+                  <button
+                    onClick={() => canWrite && setEditingKey(key)}
+                    disabled={!canWrite}
+                    className={`flex items-center justify-center text-slate-400 text-base leading-none sticky ${rightEdit} ${solidBg} ${stickyHover} z-10 ${
+                      canWrite
+                        ? 'hover:text-blue-600 dark:hover:text-blue-400'
+                        : 'opacity-40 cursor-not-allowed'
+                    }`}
+                    title={canWrite ? `Mass-edit ${key}` : 'Read-only access to this project'}
+                  >
+                    ✏️
+                  </button>
+                </>
+              )}
+              {isMobile ? (
+                <button
+                  onClick={() => setActionMenuKey(key)}
+                  className={`flex items-center justify-center text-slate-500 dark:text-slate-300 text-xl leading-none sticky right-0 ${solidBg} ${stickyHover} z-10`}
+                  title={`Actions for ${key}`}
+                  aria-label={`Actions for ${key}`}
+                >
+                  ⋯
+                </button>
+              ) : (
+                <button
+                  onClick={() => canWrite && setDeletingKey(key)}
+                  disabled={!canWrite}
+                  className={`flex items-center justify-center text-slate-400 text-base leading-none sticky right-0 ${solidBg} ${stickyHover} z-10 ${
+                    canWrite
+                      ? 'hover:text-red-600 dark:hover:text-red-400'
+                      : 'opacity-40 cursor-not-allowed'
+                  }`}
+                  title={canWrite ? `Delete ${key}` : 'Read-only access to this project'}
+                >
+                  🗑
+                </button>
+              )}
             </div>
           );
         })}
@@ -519,6 +542,55 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           sourceValuesByEnv={valuesByEnv(copyingKey)}
           onClose={() => setCopyingKey(null)}
         />
+      )}
+      {actionMenuKey !== null && (
+        // Bottom sheet — standard mobile pattern for row actions. Three
+        // sticky icons would consume ~135px on a 390px viewport; one ⋯
+        // button + sheet gives that space back to the matrix while keeping
+        // every action one tap away.
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center"
+          onClick={() => setActionMenuKey(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 w-full md:max-w-sm md:rounded-lg rounded-t-2xl p-4 pb-6 md:pb-4 shadow-2xl"
+            style={{ overscrollBehavior: 'contain' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="font-mono text-sm font-semibold mb-3 break-all">{actionMenuKey}</div>
+            <div className="space-y-1">
+              <button
+                onClick={() => { setCopyingKey(actionMenuKey); setActionMenuKey(null); }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded text-left text-base hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <span className="text-xl">📋</span>
+                <span>Copy to another project / service</span>
+              </button>
+              <button
+                onClick={() => { if (canWrite) { setEditingKey(actionMenuKey); setActionMenuKey(null); } }}
+                disabled={!canWrite}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded text-left text-base hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className="text-xl">✏️</span>
+                <span>Mass-edit</span>
+              </button>
+              <button
+                onClick={() => { if (canWrite) { setDeletingKey(actionMenuKey); setActionMenuKey(null); } }}
+                disabled={!canWrite}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded text-left text-base text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className="text-xl">🗑</span>
+                <span>Delete</span>
+              </button>
+            </div>
+            <button
+              onClick={() => setActionMenuKey(null)}
+              className="w-full mt-3 px-3 py-2 rounded bg-slate-200 dark:bg-slate-700 dark:text-slate-100 text-sm font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

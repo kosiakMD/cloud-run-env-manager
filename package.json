@@ -1,6 +1,6 @@
 {
   "name": "cloud-run-env-manager",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Web dashboard for managing Google Cloud Run env vars across projects, environments, and services. Cloudflare Worker + Hono + React. OAuth and gcloud CLI auth.",
   "license": "MIT",
   "author": "kosiakmd",
