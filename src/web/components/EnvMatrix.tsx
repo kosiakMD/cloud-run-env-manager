@@ -271,11 +271,11 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
       {environments.map((e) => (
         <label
           key={e.name}
-          className={`${PILL_H} inline-flex items-center gap-2 lg:gap-1.5 cursor-pointer text-sm lg:text-xs`}
+          className={`${PILL_H} inline-flex items-center gap-1.5 cursor-pointer text-xs`}
         >
           <input
             type="checkbox"
-            className="w-5 h-5 lg:w-4 lg:h-4"
+            className="w-4 h-4"
             checked={!!visibleEnvs[e.name]}
             onChange={(ev) => setVisibleEnvs({ ...visibleEnvs, [e.name]: ev.target.checked })}
           />

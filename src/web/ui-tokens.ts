@@ -19,16 +19,20 @@
  * literal class names.
  */
 
-export const PILL_H = 'h-9 lg:h-7';
-export const PILL_TEXT = 'text-sm lg:text-xs';
-export const PILL_PAD = 'px-3 lg:px-2';
+// ONE height for every control on every breakpoint. The earlier
+// "mobile 36 / desktop 28" split made mobile pills visually bigger
+// than their desktop counterparts which looked wrong — phones don't
+// need oversized chrome, they need consistent chrome.
+export const PILL_H = 'h-8';
+export const PILL_TEXT = 'text-xs';
+export const PILL_PAD = 'px-2';
 
-/** Standard pill — chips, +, ServiceTabs, ThemeToggle, Sign out, Add, Import, ALL/DIFF/GAP. */
+/** Standard pill — every button + chip uses this exact footprint. */
 export const PILL = `${PILL_H} ${PILL_PAD} inline-flex items-center rounded ${PILL_TEXT}`;
 
-/** Slightly shorter secondary pill — Refresh, project selector trigger. */
-export const PILL_SMALL_H = 'h-8 lg:h-6';
-export const PILL_SMALL = `${PILL_SMALL_H} ${PILL_PAD} inline-flex items-center rounded ${PILL_TEXT}`;
+/** Backwards-compat alias — no longer differentiated. Same height as PILL. */
+export const PILL_SMALL = PILL;
+export const PILL_SMALL_H = PILL_H;
 
 /** Search input + any other text input that should sit next to PILL controls. */
 export const INPUT = `${PILL_H} ${PILL_PAD} ${PILL_TEXT} border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100`;
