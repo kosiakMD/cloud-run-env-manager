@@ -255,25 +255,22 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
     <button
       onClick={toggleAllVisible}
       title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
-      className="h-9 lg:h-7 inline-flex items-center px-3 lg:px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+      className="px-2 py-1 rounded text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
     >
       {allEnvsOn ? 'None' : 'All'}
     </button>
   );
   const checkboxList = (
-    <div className="flex items-center gap-x-3 gap-y-2 text-sm flex-wrap">
+    <div className="flex items-center gap-x-3 gap-y-2 text-xs flex-wrap">
       {allButton}
       {environments.map((e) => (
-        <label key={e.name} className="h-9 lg:h-7 flex items-center gap-2 lg:gap-1.5 cursor-pointer">
+        <label key={e.name} className="flex items-center gap-1.5 cursor-pointer">
           <input
             type="checkbox"
-            className="w-5 h-5 lg:w-4 lg:h-4"
+            className="w-4 h-4"
             checked={!!visibleEnvs[e.name]}
             onChange={(ev) => setVisibleEnvs({ ...visibleEnvs, [e.name]: ev.target.checked })}
           />
-          {/* On mobile we show the full name (with optional emoji) so the
-              list reads as a real list, not a row of mystery checkboxes.
-              Desktop is the same. */}
           <span className="whitespace-nowrap">{e.emoji ? `${e.emoji} ` : ''}{e.name}</span>
         </label>
       ))}
@@ -281,10 +278,12 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   );
   // Mobile services row: collapsed by default — shows a single chevron
   // header with "X of Y selected". Expanded reveals the full list. The
-  // collapse keeps the matrix above the fold; the count tells you what
-  // you'd see if you opened it.
+  // background is a tonal step away from the page bg (slate-100/slate-850)
+  // so it reads as a distinct band; the expanded panel adds a 1px
+  // top border one shade darker so the chevron header stays visually
+  // anchored to the list it controls.
   const mobileServicesRow = (
-    <div className="lg:hidden border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 shrink-0">
+    <div className="lg:hidden border-b bg-slate-100 dark:bg-slate-900/70 dark:border-slate-700 shrink-0">
       <button
         onClick={() => setServicesCollapsed((c) => !c)}
         className="w-full flex items-center gap-2 px-3 py-2 text-left"
@@ -302,7 +301,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
         </span>
       </button>
       {!servicesCollapsed && (
-        <div className="px-3 pb-3">{checkboxList}</div>
+        <div className="px-3 pb-3 pt-2 border-t border-slate-200 dark:border-slate-800">{checkboxList}</div>
       )}
     </div>
   );
@@ -322,26 +321,23 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {servicesNode}
         </div>
       )}
-      {/* Filter toolbar — split into two rows on every breakpoint:
-            Row 1: search input + refresh
-            Row 2: ALL/DIFF/GAP filters + Add + Import
-          Even on desktop the layout reads cleaner with the "what to
-          search" row separated from "what to do with the matrix" row. */}
+      {/* Filter toolbar — two rows: search+refresh, then filters+add+import. */}
       <div className="border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 text-sm shrink-0">
         <div className="flex items-center gap-2 px-2 lg:px-3 pt-2">
           <input
             placeholder="Search keys…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            // Search takes the row's free width. Refresh sits at the end.
-            className="flex-1 min-w-0 h-9 lg:h-8 px-2 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+            // Search takes the row's free width. Refresh sits at the end
+            // — matching the header pill footprint (28px tall).
+            className="flex-1 min-w-0 px-2 py-1 text-xs border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
           />
           <button
             onClick={() => refetch()}
             disabled={isFetching}
             // Icon-only on mobile (label is redundant next to the visible
             // ↻ glyph and burns horizontal space). Desktop keeps text.
-            className="h-9 lg:h-8 inline-flex items-center justify-center w-9 lg:w-auto lg:px-2 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50 text-sm lg:text-xs"
+            className="px-2 py-1 rounded text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50"
             title="Refetch from Cloud Run"
             aria-label="Refresh"
           >
@@ -359,7 +355,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
                   disabled={disabled}
                   onClick={() => setFilterMode(b.id)}
                   title={disabled ? 'Show at least 2 environments to use this filter' : b.title}
-                  className={`h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 text-xs font-bold uppercase tracking-wider border-r last:border-r-0 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed ${
+                  className={`px-2 py-1 text-xs font-bold uppercase tracking-wider border-r last:border-r-0 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed ${
                     filterMode === b.id ? b.activeClass : b.inactiveClass
                   }`}
                 >
@@ -371,7 +367,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {canWrite && (
             <button
               onClick={() => setAdding(true)}
-              className="h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 rounded bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300 text-sm lg:text-xs font-semibold hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:ring-0 dark:hover:bg-emerald-600"
+              className="px-2 py-1 rounded bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300 text-xs font-semibold hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:ring-0 dark:hover:bg-emerald-600"
             >
               + Add
             </button>
@@ -379,7 +375,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           {canWrite && (
             <button
               onClick={() => setImporting(true)}
-              className="h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 rounded bg-blue-100 text-blue-700 ring-1 ring-blue-300 text-sm lg:text-xs font-semibold hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:ring-0 dark:hover:bg-blue-700"
+              className="px-2 py-1 rounded bg-blue-100 text-blue-700 ring-1 ring-blue-300 text-xs font-semibold hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:ring-0 dark:hover:bg-blue-700"
               title="Import .env into one or more environments"
             >
               📥 Import

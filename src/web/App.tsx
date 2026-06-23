@@ -81,12 +81,16 @@ export function App() {
         // Local-group chip + "+" button shared between the inline desktop
         // strip and the dedicated mobile row below. Same JSX renders
         // either place — the only difference is the parent layout.
+        // All header pills (+, chip-label, chip-✕, ThemeToggle) share
+        // the same `px-2 py-1 text-xs` footprint — that's the
+        // theme-button baseline the rest of the strip aligns to.
+        const PILL = 'px-2 py-1 text-xs leading-none rounded';
         const renderPlus = () => (
           <button
             onClick={() => setLocalGroupOpen(true)}
             disabled={!project}
             title="Add local group (saved in this browser only)"
-            className="h-9 lg:h-8 w-9 lg:w-8 inline-flex items-center justify-center rounded text-lg lg:text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            className={`${PILL} font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200`}
             aria-label="Add local group"
           >
             +
@@ -112,7 +116,7 @@ export function App() {
                     else setProjectId(g.id);
                   }}
                   title={active ? `Click to leave ${g.label}` : `Switch to ${g.label} (${g.environments.length} svc)`}
-                  className={`h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 rounded-l text-sm font-medium leading-none ${
+                  className={`px-2 py-1 text-xs leading-none rounded-l font-medium ${
                     active
                       ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200'
@@ -126,7 +130,7 @@ export function App() {
                     removeLocalGroup(g.id);
                   }}
                   title={`Remove ${g.label}`}
-                  className="h-9 lg:h-8 inline-flex items-center px-2 lg:px-1.5 rounded-r text-sm leading-none bg-slate-100 hover:bg-red-100 hover:text-red-700 text-slate-400 dark:bg-slate-800 dark:hover:bg-red-900 dark:hover:text-red-200 border-l border-slate-200 dark:border-slate-700"
+                  className="px-1.5 py-1 text-xs leading-none rounded-r bg-slate-100 hover:bg-red-100 hover:text-red-700 text-slate-400 dark:bg-slate-800 dark:hover:bg-red-900 dark:hover:text-red-200 border-l border-slate-200 dark:border-slate-700"
                 >
                   ✕
                 </button>
