@@ -257,7 +257,10 @@ export function AddVarModal({ projectId, currentService, visibleEnvs, onClose, e
           <button
             onClick={toggleAllEnvs}
             disabled={pending}
-            className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            // Matches the matrix' Services-row toggle: 36px tall on
+            // mobile (Apple HIG tap target), comfortable text size so
+            // it doesn't read as a typo button.
+            className="h-9 md:h-8 inline-flex items-center px-3 rounded text-sm font-semibold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
           >
             {allOn ? 'None' : 'All'}
           </button>

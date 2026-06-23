@@ -295,7 +295,10 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           placeholder="Search keys…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-40 md:w-48 px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+          // Grow to fill the row's free space — there's a minimum so the
+          // input is always usable, then flex-1 takes whatever the
+          // segmented control + action buttons leave behind on this row.
+          className="flex-1 min-w-[140px] px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
         />
         <div className="flex shrink-0 rounded border dark:border-slate-700 overflow-hidden">
           {filterButtons.map((b) => {
