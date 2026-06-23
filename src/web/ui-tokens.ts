@@ -19,11 +19,10 @@
  * literal class names.
  */
 
-// ONE height for every control on every breakpoint. The earlier
-// "mobile 36 / desktop 28" split made mobile pills visually bigger
-// than their desktop counterparts which looked wrong — phones don't
-// need oversized chrome, they need consistent chrome.
-export const PILL_H = 'h-8';
+// Mobile is slightly more compact than desktop (28px vs 32px) — phones
+// have less viewport to give up to chrome. Both sizes use the same
+// `text-xs` so the chip text doesn't change weight between breakpoints.
+export const PILL_H = 'h-7 lg:h-8';
 export const PILL_TEXT = 'text-xs';
 export const PILL_PAD = 'px-2';
 
