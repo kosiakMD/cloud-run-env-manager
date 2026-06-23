@@ -30,7 +30,9 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setMode((m) => (m === 'dark' ? 'light' : 'dark'))}
-      className="px-2 py-1 rounded text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200"
+      // Reference height for the rest of the header — chips and + button
+      // match it so the strip lines up at the same baseline.
+      className="h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 rounded text-sm font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200"
       title={mode === 'dark' ? 'Switch to light' : 'Switch to dark'}
     >
       {mode === 'dark' ? '☀ Light' : '🌙 Dark'}

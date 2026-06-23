@@ -242,28 +242,28 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   const servicesAbove = environments.length > SERVICES_INLINE_THRESHOLD;
 
   const allEnvsOn = environments.every((e) => visibleEnvs[e.name]);
-  // Same row height for All-button and checkbox-labels so the wrapped
-  // grid stays aligned. `h-7` is ~28px, fits a 16px checkbox + label
-  // baseline without the button looking inflated.
-  const servicesNode = (
+  const visibleCount = environments.filter((e) => visibleEnvs[e.name]).length;
+  const [servicesCollapsed, setServicesCollapsed] = useState(true);
+  function toggleAllVisible() {
+    setVisibleEnvs(
+      allEnvsOn
+        ? Object.fromEntries(environments.map((e) => [e.name, false]))
+        : Object.fromEntries(environments.map((e) => [e.name, true])),
+    );
+  }
+  const allButton = (
+    <button
+      onClick={toggleAllVisible}
+      title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
+      className="h-9 lg:h-7 inline-flex items-center px-3 lg:px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+    >
+      {allEnvsOn ? 'None' : 'All'}
+    </button>
+  );
+  const checkboxList = (
     <div className="flex items-center gap-x-3 gap-y-2 text-sm flex-wrap">
-      <button
-        onClick={() =>
-          setVisibleEnvs(
-            allEnvsOn
-              ? Object.fromEntries(environments.map((e) => [e.name, false]))
-              : Object.fromEntries(environments.map((e) => [e.name, true])),
-          )
-        }
-        title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
-        className="h-9 lg:h-7 inline-flex items-center px-3 md:px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-      >
-        {allEnvsOn ? 'None' : 'All'}
-      </button>
+      {allButton}
       {environments.map((e) => (
-        // h-9 (36px) on mobile so the whole checkbox+label area is a
-        // comfortable tap target; h-7 (28px) on desktop where the
-        // pointer's precision lets the chips stay tight.
         <label key={e.name} className="h-9 lg:h-7 flex items-center gap-2 lg:gap-1.5 cursor-pointer">
           <input
             type="checkbox"
@@ -271,85 +271,122 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
             checked={!!visibleEnvs[e.name]}
             onChange={(ev) => setVisibleEnvs({ ...visibleEnvs, [e.name]: ev.target.checked })}
           />
-          {/* Desktop always shows emoji + full name. Mobile prefers the
-              emoji (compact) but agnostic synth envs have no emoji, so
-              fall back to a truncated name there — otherwise users see
-              checkbox rows with nothing next to them. */}
-          <span className="hidden lg:inline whitespace-nowrap">{e.emoji ? `${e.emoji} ` : ''}{e.name}</span>
-          {e.emoji ? (
-            <span className="lg:hidden text-base">{e.emoji}</span>
-          ) : (
-            <span className="lg:hidden text-xs font-mono max-w-[88px] truncate" title={e.name}>{e.name}</span>
-          )}
+          {/* On mobile we show the full name (with optional emoji) so the
+              list reads as a real list, not a row of mystery checkboxes.
+              Desktop is the same. */}
+          <span className="whitespace-nowrap">{e.emoji ? `${e.emoji} ` : ''}{e.name}</span>
         </label>
       ))}
     </div>
   );
+  // Mobile services row: collapsed by default — shows a single chevron
+  // header with "X of Y selected". Expanded reveals the full list. The
+  // collapse keeps the matrix above the fold; the count tells you what
+  // you'd see if you opened it.
+  const mobileServicesRow = (
+    <div className="lg:hidden border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 shrink-0">
+      <button
+        onClick={() => setServicesCollapsed((c) => !c)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-left"
+        aria-expanded={!servicesCollapsed}
+      >
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Services</span>
+        <span className="text-xs text-slate-600 dark:text-slate-300">
+          {visibleCount} of {environments.length} selected
+        </span>
+        <span
+          aria-hidden
+          className={`ml-auto transition-transform text-slate-500 dark:text-slate-300 ${servicesCollapsed ? '' : 'rotate-180'}`}
+        >
+          ▾
+        </span>
+      </button>
+      {!servicesCollapsed && (
+        <div className="px-3 pb-3">{checkboxList}</div>
+      )}
+    </div>
+  );
+  // Desktop inline node — used both for the always-above row (many envs)
+  // and the right-of-toolbar inline placement (few envs). Mobile gets the
+  // dedicated collapsible block above instead.
+  const servicesNode = checkboxList;
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      {/* Mobile gets the collapsible block. Desktop above-row only
+          renders when the env list won't fit inline with the filters. */}
+      {mobileServicesRow}
       {servicesAbove && (
-        <div className="flex items-center gap-3 px-2 md:px-3 py-2 border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 shrink-0">
+        <div className="hidden lg:flex items-center gap-3 px-2 md:px-3 py-2 border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 shrink-0">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 shrink-0">Services</span>
           {servicesNode}
         </div>
       )}
-      <div className="flex items-center flex-wrap gap-2 p-2 md:p-3 border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 text-sm shrink-0">
-        <input
-          placeholder="Search keys…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          // Mobile gets `flex-1` so the search bar fills the wrap row
-          // instead of leaving dead space next to ALL/DIFF/GAP. Desktop
-          // keeps the fixed 192px width — a wide search input on a 1440px
-          // toolbar reads as overemphasis when the segmented control
-          // and action buttons next to it are compact.
-          className="w-full flex-1 lg:flex-none lg:w-48 px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
-        />
-        <div className="flex shrink-0 rounded border dark:border-slate-700 overflow-hidden">
-          {filterButtons.map((b) => {
-            const disabled = singleCol && b.id !== 'all';
-            return (
-              <button
-                key={b.id}
-                disabled={disabled}
-                onClick={() => setFilterMode(b.id)}
-                title={disabled ? 'Show at least 2 environments to use this filter' : b.title}
-                className={`px-2 py-1 text-xs font-bold uppercase tracking-wider border-r last:border-r-0 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed ${
-                  filterMode === b.id ? b.activeClass : b.inactiveClass
-                }`}
-              >
-                {b.label}
-              </button>
-            );
-          })}
+      {/* Filter toolbar — split into two rows on every breakpoint:
+            Row 1: search input + refresh
+            Row 2: ALL/DIFF/GAP filters + Add + Import
+          Even on desktop the layout reads cleaner with the "what to
+          search" row separated from "what to do with the matrix" row. */}
+      <div className="border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700 text-sm shrink-0">
+        <div className="flex items-center gap-2 px-2 lg:px-3 pt-2">
+          <input
+            placeholder="Search keys…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            // Search takes the row's free width. Refresh sits at the end.
+            className="flex-1 min-w-0 h-9 lg:h-8 px-2 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+          />
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            // Icon-only on mobile (label is redundant next to the visible
+            // ↻ glyph and burns horizontal space). Desktop keeps text.
+            className="h-9 lg:h-8 inline-flex items-center justify-center w-9 lg:w-auto lg:px-2 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50 text-sm lg:text-xs"
+            title="Refetch from Cloud Run"
+            aria-label="Refresh"
+          >
+            <span className="lg:hidden">{isFetching ? '↻…' : '↻'}</span>
+            <span className="hidden lg:inline">{isFetching ? '↻…' : '↻ Refresh'}</span>
+          </button>
         </div>
-        <button
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50 text-xs"
-          title="Refetch from Cloud Run"
-        >
-          {isFetching ? '↻…' : '↻ Refresh'}
-        </button>
-        {canWrite && (
-          <button
-            onClick={() => setAdding(true)}
-            className="px-2 py-1 rounded bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300 text-xs font-semibold hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:ring-0 dark:hover:bg-emerald-600"
-          >
-            + Add
-          </button>
-        )}
-        {canWrite && (
-          <button
-            onClick={() => setImporting(true)}
-            className="px-2 py-1 rounded bg-blue-100 text-blue-700 ring-1 ring-blue-300 text-xs font-semibold hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:ring-0 dark:hover:bg-blue-700"
-            title="Import .env into one or more environments"
-          >
-            📥 Import
-          </button>
-        )}
-        {!servicesAbove && <div className="ml-auto">{servicesNode}</div>}
+        <div className="flex items-center flex-wrap gap-2 px-2 lg:px-3 py-2">
+          <div className="flex shrink-0 rounded border dark:border-slate-700 overflow-hidden">
+            {filterButtons.map((b) => {
+              const disabled = singleCol && b.id !== 'all';
+              return (
+                <button
+                  key={b.id}
+                  disabled={disabled}
+                  onClick={() => setFilterMode(b.id)}
+                  title={disabled ? 'Show at least 2 environments to use this filter' : b.title}
+                  className={`h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 text-xs font-bold uppercase tracking-wider border-r last:border-r-0 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed ${
+                    filterMode === b.id ? b.activeClass : b.inactiveClass
+                  }`}
+                >
+                  {b.label}
+                </button>
+              );
+            })}
+          </div>
+          {canWrite && (
+            <button
+              onClick={() => setAdding(true)}
+              className="h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 rounded bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300 text-sm lg:text-xs font-semibold hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:ring-0 dark:hover:bg-emerald-600"
+            >
+              + Add
+            </button>
+          )}
+          {canWrite && (
+            <button
+              onClick={() => setImporting(true)}
+              className="h-9 lg:h-8 inline-flex items-center px-3 lg:px-2 rounded bg-blue-100 text-blue-700 ring-1 ring-blue-300 text-sm lg:text-xs font-semibold hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:ring-0 dark:hover:bg-blue-700"
+              title="Import .env into one or more environments"
+            >
+              📥 Import
+            </button>
+          )}
+          {!servicesAbove && <div className="ml-auto hidden lg:block">{servicesNode}</div>}
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-auto bg-slate-50 dark:bg-slate-950">
