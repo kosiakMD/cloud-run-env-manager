@@ -77,19 +77,24 @@ export function App() {
         onProjectChange={setProjectId}
         canWrite={canWrite}
       />
-      <div className="flex items-center justify-between px-3 md:px-4 pt-2 pb-1 shrink-0 gap-2">
+      <div className="flex items-start md:items-center justify-between px-3 md:px-4 pt-2 pb-1 shrink-0 gap-2 flex-wrap">
         <h1 className="text-base md:text-xl font-bold truncate">
           {title}{isAgnostic && <span className="ml-2 text-xs font-mono text-amber-600 dark:text-amber-400">🔍 agnostic</span>}
         </h1>
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* The right cluster grows with every local group chip. On a
+            phone with even a couple of groups it would otherwise push
+            ThemeToggle off-screen. `flex-wrap` lets the cluster spill
+            onto a second line, the outer header is `items-start` on
+            mobile so the title stays anchored top-left. */}
+        <div className="flex items-center gap-1.5 flex-wrap justify-end min-w-0">
           <button
             onClick={() => setLocalGroupOpen(true)}
             disabled={!project}
             title="Add local group (saved in this browser only)"
-            // 44px on mobile for a finger-friendly tap target; 28px on
-            // desktop where pointer precision makes the chip-row
-            // compact-friendly.
-            className="w-11 h-11 md:w-7 md:h-7 inline-flex items-center justify-center rounded text-xl md:text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            // Mobile 36px sits at the smaller end of usable tap targets
+            // while not looking visually oversized next to the 28px
+            // chips. Desktop stays at 28px.
+            className="w-9 h-9 md:w-7 md:h-7 inline-flex items-center justify-center rounded text-lg md:text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
             aria-label="Add local group"
           >
             +
