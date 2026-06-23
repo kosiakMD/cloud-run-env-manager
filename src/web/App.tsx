@@ -9,7 +9,7 @@ import { fetchHealth, isAgnostic } from './api.js';
 import { useProjects, useFindProject } from './use-projects.js';
 import { useLocalGroups, removeLocalGroup, migrateBaseIds } from './local-groups.js';
 import { config, type ServiceId } from '../shared/config.js';
-import { PILL, PILL_H, PILL_TEXT, PILL_PAD } from './ui-tokens.js';
+import { PILL, PILL_H, PILL_TEXT, PILL_PAD, PILL_SQUARE } from './ui-tokens.js';
 
 export function App() {
   // Project list now comes from health (so it reflects agnostic mode's
@@ -88,7 +88,7 @@ export function App() {
             onClick={() => setLocalGroupOpen(true)}
             disabled={!project}
             title="Add local group (saved in this browser only)"
-            className={`${PILL} justify-center font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200`}
+            className={`${PILL_SQUARE} font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200`}
             aria-label="Add local group"
           >
             +

@@ -104,7 +104,7 @@ export function AuthBanner({ projectId, onProjectChange, canWrite }: Props) {
     // project IDs) became redundant once the selector shows that info in its
     // trigger + dropdown.
     return (
-      <div className="px-3 py-1 md:py-1.5 bg-emerald-50 dark:bg-emerald-950 border-b border-emerald-200 dark:border-emerald-900 text-[10px] md:text-xs flex items-center gap-2">
+      <div className="px-3 py-1 md:py-1.5 bg-emerald-50 dark:bg-emerald-950 border-b border-emerald-200 dark:border-emerald-900 text-xs md:text-sm flex items-center gap-2">
         <span className="truncate">
           {data.via === 'oauth' ? 'signed in' : 'gcloud'}: <strong>{data.account}</strong>
         </span>

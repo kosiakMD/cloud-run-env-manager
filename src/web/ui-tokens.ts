@@ -29,6 +29,11 @@ export const PILL_PAD = 'px-2';
 /** Standard pill — every button + chip uses this exact footprint. */
 export const PILL = `${PILL_H} ${PILL_PAD} inline-flex items-center rounded ${PILL_TEXT}`;
 
+/** Icon-only square button — width matches height so single-glyph
+ *  controls (+, ↻ on mobile) read as proper square buttons, not
+ *  weird narrow pills. */
+export const PILL_SQUARE = `${PILL_H} w-7 lg:w-8 inline-flex items-center justify-center rounded ${PILL_TEXT}`;
+
 /** Backwards-compat alias — no longer differentiated. Same height as PILL. */
 export const PILL_SMALL = PILL;
 export const PILL_SMALL_H = PILL_H;

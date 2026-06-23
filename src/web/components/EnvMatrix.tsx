@@ -5,7 +5,7 @@ import { type ServiceId } from '../../shared/config.js';
 import { fetchEnvs, isAgnostic } from '../api.js';
 import { useFindProject } from '../use-projects.js';
 import { useLocalGroups } from '../local-groups.js';
-import { PILL, PILL_SMALL, INPUT, PILL_H } from '../ui-tokens.js';
+import { PILL, INPUT, PILL_H, PILL_SQUARE } from '../ui-tokens.js';
 import { triggerDotEnvDownload } from '../dotenv-io.js';
 import { EnvCell } from './EnvCell.js';
 import { DeleteConfirmModal } from './DeleteConfirmModal.js';
@@ -339,17 +339,27 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
             onChange={(e) => setSearch(e.target.value)}
             className={`flex-1 min-w-0 ${INPUT}`}
           />
+          {/* Mobile = square icon-only button (no "Refresh" label —
+              icon is enough at that scale and the label burns space).
+              Desktop = pill with label. Two separate elements so each
+              variant gets the right footprint instead of trying to
+              squeeze both into one className. */}
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            // PILL_SMALL is one step shorter than the pills — per spec,
-            // refresh is a secondary action so it reads as such.
-            className={`${PILL_SMALL} bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50`}
+            className={`lg:hidden ${PILL_SQUARE} bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50`}
             title="Refetch from Cloud Run"
             aria-label="Refresh"
           >
-            <span className="lg:hidden">{isFetching ? '↻…' : '↻'}</span>
-            <span className="hidden lg:inline">{isFetching ? '↻…' : '↻ Refresh'}</span>
+            {isFetching ? '↻…' : '↻'}
+          </button>
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className={`hidden lg:inline-flex ${PILL} bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 disabled:opacity-50`}
+            title="Refetch from Cloud Run"
+          >
+            {isFetching ? '↻…' : '↻ Refresh'}
           </button>
         </div>
         <div className="flex items-center flex-wrap gap-2 px-2 lg:px-3 py-2">
