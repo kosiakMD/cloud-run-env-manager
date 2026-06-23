@@ -77,7 +77,7 @@ export function App() {
         onProjectChange={setProjectId}
         canWrite={canWrite}
       />
-      <div className="flex items-start md:items-center justify-between px-3 md:px-4 pt-2 pb-1 shrink-0 gap-2 flex-wrap">
+      <div className="flex items-start lg:items-center justify-between px-3 md:px-4 pt-2 pb-1 shrink-0 gap-2 flex-wrap">
         <h1 className="text-base md:text-xl font-bold truncate">
           {title}{isAgnostic && <span className="ml-2 text-xs font-mono text-amber-600 dark:text-amber-400">🔍 agnostic</span>}
         </h1>
@@ -94,7 +94,7 @@ export function App() {
             // Mobile 36px sits at the smaller end of usable tap targets
             // while not looking visually oversized next to the 28px
             // chips. Desktop stays at 28px.
-            className="w-9 h-9 md:w-7 md:h-7 inline-flex items-center justify-center rounded text-lg md:text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            className="w-9 h-9 lg:w-7 lg:h-7 inline-flex items-center justify-center rounded text-lg lg:text-base leading-none font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
             aria-label="Add local group"
           >
             +

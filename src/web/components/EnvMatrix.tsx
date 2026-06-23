@@ -96,11 +96,15 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
   );
   const singleCol = visibleCols.length <= 1;
 
+  // Anything narrower than `lg` (1024px) gets the touch-optimised layout
+  // — covers phones in either orientation, narrow browser windows on
+  // a Mac, and small tablets. The earlier `md` threshold (768px) was
+  // false-negative for iPhone landscape and any narrow desktop window.
   const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 1023px)').matches : false,
   );
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
+    const mq = window.matchMedia('(max-width: 1023px)');
     const sync = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
     sync(mq);
     mq.addEventListener('change', sync);
@@ -252,7 +256,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           )
         }
         title={allEnvsOn ? 'Hide all environments' : 'Show all environments'}
-        className="h-9 md:h-7 inline-flex items-center px-3 md:px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        className="h-9 lg:h-7 inline-flex items-center px-3 md:px-2 rounded text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
       >
         {allEnvsOn ? 'None' : 'All'}
       </button>
@@ -260,10 +264,10 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
         // h-9 (36px) on mobile so the whole checkbox+label area is a
         // comfortable tap target; h-7 (28px) on desktop where the
         // pointer's precision lets the chips stay tight.
-        <label key={e.name} className="h-9 md:h-7 flex items-center gap-2 md:gap-1.5 cursor-pointer">
+        <label key={e.name} className="h-9 lg:h-7 flex items-center gap-2 lg:gap-1.5 cursor-pointer">
           <input
             type="checkbox"
-            className="w-5 h-5 md:w-4 md:h-4"
+            className="w-5 h-5 lg:w-4 lg:h-4"
             checked={!!visibleEnvs[e.name]}
             onChange={(ev) => setVisibleEnvs({ ...visibleEnvs, [e.name]: ev.target.checked })}
           />
@@ -271,11 +275,11 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
               emoji (compact) but agnostic synth envs have no emoji, so
               fall back to a truncated name there — otherwise users see
               checkbox rows with nothing next to them. */}
-          <span className="hidden md:inline whitespace-nowrap">{e.emoji ? `${e.emoji} ` : ''}{e.name}</span>
+          <span className="hidden lg:inline whitespace-nowrap">{e.emoji ? `${e.emoji} ` : ''}{e.name}</span>
           {e.emoji ? (
-            <span className="md:hidden text-base">{e.emoji}</span>
+            <span className="lg:hidden text-base">{e.emoji}</span>
           ) : (
-            <span className="md:hidden text-xs font-mono max-w-[88px] truncate" title={e.name}>{e.name}</span>
+            <span className="lg:hidden text-xs font-mono max-w-[88px] truncate" title={e.name}>{e.name}</span>
           )}
         </label>
       ))}
@@ -300,7 +304,7 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           // keeps the fixed 192px width — a wide search input on a 1440px
           // toolbar reads as overemphasis when the segmented control
           // and action buttons next to it are compact.
-          className="w-full flex-1 md:flex-none md:w-48 px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+          className="w-full flex-1 lg:flex-none lg:w-48 px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
         />
         <div className="flex shrink-0 rounded border dark:border-slate-700 overflow-hidden">
           {filterButtons.map((b) => {
@@ -554,11 +558,11 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
         // button + sheet gives that space back to the matrix while keeping
         // every action one tap away.
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center"
+          className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center"
           onClick={() => setActionMenuKey(null)}
         >
           <div
-            className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 w-full md:max-w-sm md:rounded-lg rounded-t-2xl p-4 pb-6 md:pb-4 shadow-2xl"
+            className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 w-full lg:max-w-sm lg:rounded-lg rounded-t-2xl p-4 pb-6 lg:pb-4 shadow-2xl"
             style={{ overscrollBehavior: 'contain' }}
             onClick={(e) => e.stopPropagation()}
           >
