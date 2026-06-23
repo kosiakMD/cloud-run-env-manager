@@ -295,10 +295,12 @@ export function EnvMatrix({ projectId, service, canWrite }: Props) {
           placeholder="Search keys…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          // Grow to fill the row's free space — there's a minimum so the
-          // input is always usable, then flex-1 takes whatever the
-          // segmented control + action buttons leave behind on this row.
-          className="flex-1 min-w-[140px] px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+          // Mobile gets `flex-1` so the search bar fills the wrap row
+          // instead of leaving dead space next to ALL/DIFF/GAP. Desktop
+          // keeps the fixed 192px width — a wide search input on a 1440px
+          // toolbar reads as overemphasis when the segmented control
+          // and action buttons next to it are compact.
+          className="w-full flex-1 md:flex-none md:w-48 px-2 py-1 border rounded bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
         />
         <div className="flex shrink-0 rounded border dark:border-slate-700 overflow-hidden">
           {filterButtons.map((b) => {
